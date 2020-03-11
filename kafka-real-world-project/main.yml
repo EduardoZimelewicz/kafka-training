@@ -1,0 +1,13 @@
+- hosts: localhost
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: Include vars from kafka
+      include_vars:
+        file: vars/vault.yml
+    
+    - name: templating java file that has twitter API keys
+      template:
+        src: TwitterConsumer.java.j2
+        dest: ./src/main/java/com/github/eduardo/main/TwitterConsumer.java
+        remote_src: no

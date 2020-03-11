@@ -1,3 +1,7 @@
 **/.idea/
 **/target/
 **/*.iml
+.ansible_vault_pass
+.settings
+.project
+.classpath
