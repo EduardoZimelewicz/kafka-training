@@ -8,6 +8,6 @@
     
     - name: templating java file that has twitter API keys
       template:
-        src: TwitterConsumer.java.j2
-        dest: ./src/main/java/com/github/eduardo/main/TwitterConsumer.java
+        src: TwitterProducer.java.j2
+        dest: ./src/main/java/com/github/eduardo/producer/TwitterProducer.java
         remote_src: no

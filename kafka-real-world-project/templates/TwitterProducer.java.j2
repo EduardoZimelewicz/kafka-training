@@ -1,4 +1,4 @@
-package com.github.eduardo.main;
+package com.github.eduardo.producer;
 
 import com.google.common.collect.Lists;
 import com.twitter.hbc.ClientBuilder;
@@ -25,9 +25,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class TwitterConsumer {
+public class TwitterProducer {
 
-    private static final Logger logger = LoggerFactory.getLogger(TwitterConsumer.class);
+    private static final Logger logger = LoggerFactory.getLogger(TwitterProducer.class);
 
     public static void main(String[] args) {
 
