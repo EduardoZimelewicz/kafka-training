@@ -1,6 +1,7 @@
 **/.idea/
 **/target/
 **/*.iml
+kafka-real-world-project/src/main/java/com/github/eduardo/producer/TwitterProducer.java
 .ansible_vault_pass
 .settings
 .project
