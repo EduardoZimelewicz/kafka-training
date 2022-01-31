@@ -2,19 +2,42 @@ package com.github.eduardozimelewicz.udemy.kafka.streams;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.Serdes;
+import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.KafkaStreams;
+import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
-import org.apache.kafka.streams.kstream.KStream;
-import org.apache.kafka.streams.kstream.KStreamBuilder;
-import org.apache.kafka.streams.kstream.KTable;
+import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.kstream.*;
+import org.apache.kafka.streams.state.KeyValueStore;
 
 import java.io.IOException;
 import java.util.Properties;
 
 public class BankBalanceExactlyOnce {
+    public Topology createTopology(){
+        StreamsBuilder builder = new StreamsBuilder();
+
+        KStream<String,String> bankAmounts =
+                builder.stream("bank-balance-input");
+
+        KTable<String,String> bankBalance = bankAmounts
+                .groupByKey()
+                .aggregate(
+                        () -> newBalance().toString(),
+                        (aggKey, newValue, aggValue) -> computeBalance(newValue, aggValue).toString(),
+                        Materialized.<String, String, KeyValueStore<Bytes, byte[]>>as("aggregated-bank-balance")
+                                .withValueSerde(Serdes.String())
+                );
+
+        bankBalance.toStream().to("bank-balance-output");
+
+        return builder.build();
+    }
+
     public static void main (String [] args){
         Properties config = new Properties();
 
@@ -26,24 +49,10 @@ public class BankBalanceExactlyOnce {
         config.put(StreamsConfig.DEFAULT_KEY_SERDE_CLASS_CONFIG, Serdes.String().getClass());
         config.put(StreamsConfig.DEFAULT_VALUE_SERDE_CLASS_CONFIG, Serdes.String().getClass());
 
-        //Builder for stream
-        KStreamBuilder builder = new KStreamBuilder();
+        BankBalanceExactlyOnce bankBalanceExactlyOnce = new BankBalanceExactlyOnce();
 
-        KStream<String,String> bankAmounts =
-                builder.stream("bank-balance-input");
+        KafkaStreams streams = new KafkaStreams(bankBalanceExactlyOnce.createTopology(), config);
 
-        KTable<String,String> bankBalance = bankAmounts
-                .groupByKey()
-                .aggregate(
-                        () -> newBalance().toString(),
-                        (aggKey, newValue, aggValue) -> computeBalance(newValue, aggValue).toString(),
-                        Serdes.String(),
-                        "aggregated-bank-balance"
-                );
-
-        bankBalance.to("bank-balance-output");
-
-        KafkaStreams streams = new KafkaStreams(builder, config);
         streams.start();
 
         // shutdown hook to correctly close the streams application
